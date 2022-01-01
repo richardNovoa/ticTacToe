@@ -1,7 +1,7 @@
-import Board from "./Board";
 import React from "react";
+import Board from "./Board";
 
-function calculateWinner(squares) {
+function threeInRow(squares) {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -20,6 +20,7 @@ function calculateWinner(squares) {
   }
   return null;
 }
+
 class Game extends React.Component {
   constructor(props) {
     super(props);
@@ -29,61 +30,70 @@ class Game extends React.Component {
           squares: Array(9).fill(null),
         },
       ],
-      stepNumber: 0,
-      xIsNext: true,
+      moveNumber: 0,
+      isX: true,
     };
   }
-  handleClick(i) {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
+  handleclick(i) {
+    const history = this.state.history;
+    const current = history[this.state.moveNumber];
     const squares = current.squares.slice();
 
-    if (calculateWinner(squares) || squares[i]) {
+    const timeMachine =
+      this.state.moveNumber !== history.length - 1 ? true : false;
+
+    if (threeInRow(squares) || squares[i] || timeMachine) {
       return;
     } else {
-      squares[i] = this.state.xIsNext ? "X" : "O";
+      squares[i] = this.state.isX ? "X" : "O";
       this.setState({
         history: history.concat([{ squares: squares }]),
-        stepNumber: history.length,
-        xIsNext: !this.state.xIsNext,
+        isX: !this.state.isX,
+        moveNumber: history.length,
       });
     }
   }
-  jumpTo(step) {
+  jumpMove(step) {
     this.setState({
-      stepNumber: step,
-      xIsNext: step % 2 === 0,
+      moveNumber: step,
+      isX: step % 2 === 0,
     });
   }
   render() {
     const history = this.state.history;
-    const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const current = history[this.state.moveNumber];
+    const squares = current.squares.slice();
+
+    const nextPlayer = this.state.isX ? "X" : "O";
+    const winner = threeInRow(squares);
+
+    let status;
+    if (!winner) {
+      status = "Next player is " + nextPlayer;
+    } else {
+      status = "Winner is " + winner;
+    }
 
     const moves = history.map((step, move) => {
-      const desc = move ? "Go to move #" + move : "Go to game start";
+      const desc = move ? "Go to move # " + move : "Go to game start";
       return (
         <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+          <button onClick={() => this.jumpMove(move)}>{desc}</button>
         </li>
       );
     });
-    let status;
-    if (winner) {
-      status = "Winner: " + winner;
-    } else {
-      status = "Next player: " + (this.state.xIsNext ? "X" : "O");
-    }
+
     return (
       <div className="game">
         <div className="game-board">
           <Board
             squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
+            onClick={(i) => this.handleclick(i)}
           />
         </div>
+
         <div className="game-info">
-          <div>{status}</div>
+          <div className="status">{status}</div>
           <ol>{moves}</ol>
         </div>
       </div>

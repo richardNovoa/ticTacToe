@@ -1,14 +1,8 @@
 function Square(props) {
   return (
-    <button
-      className="square"
-      onClick={() => {
-        props.onClick();
-      }}
-    >
+    <div className="square" value={props.value} onClick={props.onClick}>
       {props.value}
-    </button>
+    </div>
   );
 }
-
 export default Square;
